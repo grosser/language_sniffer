@@ -1,11 +1,10 @@
 require 'yaml'
-require 'pygments'
 
-module Linguist
+module LanguageSniffer
   # Language names that are recognizable by GitHub. Defined languages
   # can be highlighted, searched and listed under the Top Languages page.
   #
-  # Languages are defined in `lib/linguist/languages.yml`.
+  # Languages are defined in `lib/language_sniffer/languages.yml`.
   class Language
     @languages       = []
     @overrides       = {}
@@ -118,7 +117,7 @@ module Linguist
     #   Language.find_by_alias('cpp')
     #   # => #<Language name="C++">
     #
-    # Returns the Lexer or nil if none was found.
+    # Returns the Language or nil if none was found.
     def self.find_by_alias(name)
       @alias_index[name]
     end
@@ -152,7 +151,7 @@ module Linguist
       @filename_index[basename] || @extension_index[extname]
     end
 
-    # Public: Look up Language by its name or lexer.
+    # Public: Look up Language by its name.
     #
     # name - The String name of the Language
     #
@@ -169,30 +168,6 @@ module Linguist
       @index[name]
     end
 
-    # Public: A List of popular languages
-    #
-    # Popular languages are sorted to the top of language chooser
-    # dropdowns.
-    #
-    # This list is configured in "popular.yml".
-    #
-    # Returns an Array of Lexers.
-    def self.popular
-      @popular ||= all.select(&:popular?).sort_by { |lang| lang.name.downcase }
-    end
-
-    # Public: A List of non-popular languages
-    #
-    # Unpopular languages appear below popular ones in language
-    # chooser dropdowns.
-    #
-    # This list is created from all the languages not listed in "popular.yml".
-    #
-    # Returns an Array of Lexers.
-    def self.unpopular
-      @unpopular ||= all.select(&:unpopular?).sort_by { |lang| lang.name.downcase }
-    end
-
     # Internal: Initialize a new Language
     #
     # attributes - A hash of attributes
@@ -202,16 +177,12 @@ module Linguist
 
       # Set type
       @type = attributes[:type] ? attributes[:type].to_sym : nil
-      if @type && !TYPES.include?(@type)
-        raise ArgumentError, "invalid type: #{@type}"
-      end
 
       # Set aliases
       @aliases = [default_alias_name] + (attributes[:aliases] || [])
 
-      # Lookup Lexer object
-      @lexer = Pygments::Lexer.find_by_name(attributes[:lexer] || name) ||
-        raise(ArgumentError, "#{@name} is missing lexer")
+      # Set pygments lexer
+      @lexer = attributes[:lexer] || name
 
       # Set legacy search term
       @search_term = attributes[:search_term] || default_alias_name
@@ -227,10 +198,6 @@ module Linguist
       if primary_extension && !extensions.include?(primary_extension)
         @extensions = [primary_extension] + extensions
       end
-
-      # Set popular, and searchable flags
-      @popular    = attributes.key?(:popular)    ? attributes[:popular]    : false
-      @searchable = attributes.key?(:searchable) ? attributes[:searchable] : true
 
       # If group name is set, save the name so we can lazy load it later
       if attributes[:group_name]
@@ -259,6 +226,11 @@ module Linguist
     # Returns a type Symbol or nil.
     attr_reader :type
 
+    # Public: Get pygments lexer name.
+    #
+    # Returns a lexer name or nil.
+    attr_reader :lexer
+
     # Public: Get aliases
     #
     # Examples
@@ -279,11 +251,6 @@ module Linguist
     #
     # Returns the name String
     attr_reader :search_term
-
-    # Public: Get Lexer
-    #
-    # Returns the Lexer
-    attr_reader :lexer
 
     # Public: Get extensions
     #
@@ -343,40 +310,6 @@ module Linguist
       @group ||= Language.find_by_name(@group_name)
     end
 
-    # Public: Is it popular?
-    #
-    # Returns true or false
-    def popular?
-      @popular
-    end
-
-    # Public: Is it not popular?
-    #
-    # Returns true or false
-    def unpopular?
-      !popular?
-    end
-
-    # Public: Is it searchable?
-    #
-    # Unsearchable languages won't by indexed by solr and won't show
-    # up in the code search dropdown.
-    #
-    # Returns true or false
-    def searchable?
-      @searchable
-    end
-
-    # Public: Highlight syntax of text
-    #
-    # text    - String of code to be highlighted
-    # options - A Hash of options (defaults to {})
-    #
-    # Returns html String
-    def colorize(text, options = {})
-      lexer.highlight(text, options = {})
-    end
-
     # Public: Return name as String representation
     def to_s
       name
@@ -395,8 +328,6 @@ module Linguist
     end
   end
 
-  popular = YAML.load_file(File.expand_path("../popular.yml", __FILE__))
-
   YAML.load_file(File.expand_path("../languages.yml", __FILE__)).each do |name, options|
     Language.create(
       :name              => name,
@@ -404,13 +335,11 @@ module Linguist
       :aliases           => options['aliases'],
       :lexer             => options['lexer'],
       :group_name        => options['group'],
-      :searchable        => options.key?('searchable') ? options['searchable'] : true,
       :search_term       => options['search_term'],
       :extensions        => options['extensions'],
       :primary_extension => options['primary_extension'],
       :overrides         => options['overrides'],
-      :filenames         => options['filenames'],
-      :popular           => popular.include?(name)
+      :filenames         => options['filenames']
     )
   end
 end

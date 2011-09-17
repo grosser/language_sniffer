@@ -1,13 +1,8 @@
-require 'linguist/language'
-require 'linguist/mime'
-require 'linguist/pathname'
-
-require 'charlock_holmes'
-require 'escape_utils'
-require 'pygments'
+require 'language_sniffer/language'
+require 'language_sniffer/pathname'
 require 'yaml'
 
-module Linguist
+module LanguageSniffer
   # BlobHelper is a mixin for Blobish classes that respond to "name",
   # "data" and "size" such as Grit::Blob.
   module BlobHelper
@@ -30,142 +25,13 @@ module Linguist
       pathname.extname
     end
 
-    # Public: Get the actual blob mime type
-    #
-    # Examples
-    #
-    #   # => 'text/plain'
-    #   # => 'text/html'
-    #
-    # Returns a mime type String.
-    def mime_type
-      @mime_type ||= pathname.mime_type
-    end
-
-    # Public: Get the Content-Type header value
-    #
-    # This value is used when serving raw blobs.
-    #
-    # Examples
-    #
-    #   # => 'text/plain; charset=utf-8'
-    #   # => 'application/octet-stream'
-    #
-    # Returns a content type String.
-    def content_type
-      @content_type ||= binary? ? mime_type :
-        (encoding ? "text/plain; charset=#{encoding.downcase}" : "text/plain")
-    end
-
-    # Public: Get the Content-Disposition header value
-    #
-    # This value is used when serving raw blobs.
-    #
-    #   # => "attachment; filename=file.tar"
-    #   # => "inline"
-    #
-    # Returns a content disposition String.
-    def disposition
-      if text? || image?
-        'inline'
-      elsif name.nil?
-        "attachment"
-      else
-        "attachment; filename=#{EscapeUtils.escape_url(pathname.basename)}"
-      end
-    end
-
-    def encoding
-      if hash = detect_encoding
-        hash[:encoding]
-      end
-    end
-
-    # Try to guess the encoding
-    #
-    # Returns: a Hash, with :encoding, :confidence, :type
-    #          this will return nil if an error occurred during detection or
-    #          no valid encoding could be found
-    def detect_encoding
-      @detect_encoding ||= CharlockHolmes::EncodingDetector.new.detect(data) if data
-    end
-
-    # Public: Is the blob binary?
-    #
-    # Return true or false
-    def binary?
-      # Large blobs aren't even loaded into memory
-      if data.nil?
-        true
-
-      # Treat blank files as text
-      elsif data == ""
-        false
-
-      # Charlock doesn't know what to think
-      elsif encoding.nil?
-        true
-
-      # If Charlock says its binary
-      else
-        detect_encoding[:type] == :binary
-      end
-    end
-
-    # Public: Is the blob text?
-    #
-    # Return true or false
-    def text?
-      !binary?
-    end
-
-    # Public: Is the blob a supported image format?
-    #
-    # Return true or false
-    def image?
-      ['.png', '.jpg', '.jpeg', '.gif'].include?(extname)
-    end
-
-    MEGABYTE = 1024 * 1024
-
-    # Public: Is the blob too big to load?
-    #
-    # Return true or false
-    def large?
-      size.to_i > MEGABYTE
-    end
-
-    # Public: Is the blob viewable?
-    #
-    # Non-viewable blobs will just show a "View Raw" link
-    #
-    # Return true or false
-    def viewable?
-      text? && !large?
-    end
-
-    vendored_paths = YAML.load_file(File.expand_path("../vendor.yml", __FILE__))
-    VendoredRegexp = Regexp.new(vendored_paths.join('|'))
-
-    # Public: Is the blob in a vendored directory?
-    #
-    # Vendored files are ignored by language statistics.
-    #
-    # See "vendor.yml" for a list of vendored conventions that match
-    # this pattern.
-    #
-    # Return true or false
-    def vendored?
-      name =~ VendoredRegexp ? true : false
-    end
-
     # Public: Get each line of data
     #
     # Requires Blob#data
     #
     # Returns an Array of lines
     def lines
-      @lines ||= (viewable? && data) ? data.split("\n", -1) : []
+      @lines ||= (data ? data.split("\n", -1) : [])
     end
 
     # Public: Get number of lines of code
@@ -311,34 +177,6 @@ module Linguist
         lines[-2].include?("</doc>")
     end
 
-    # Public: Should the blob be indexed for searching?
-    #
-    # Excluded:
-    # - Files over 0.1MB
-    # - Non-text files
-    # - Langauges marked as not searchable
-    # - Generated source files
-    #
-    # Please add additional test coverage to
-    # `test/test_blob.rb#test_indexable` if you make any changes.
-    #
-    # Return true or false
-    def indexable?
-      if binary?
-        false
-      elsif language.nil?
-        false
-      elsif !language.searchable?
-        false
-      elsif generated?
-        false
-      elsif size > 100 * 1024
-        false
-      else
-        true
-      end
-    end
-
     # Public: Detects the Language of the blob.
     #
     # May load Blob#data
@@ -359,8 +197,6 @@ module Linguist
     #
     # Returns a Language or nil
     def guess_language
-      return if binary?
-
       # Disambiguate between multiple language extensions
       disambiguate_extension_language ||
 
@@ -372,13 +208,6 @@ module Linguist
 
         # Try to detect Language from shebang line
         shebang_language
-    end
-
-    # Internal: Get the lexer of the blob.
-    #
-    # Returns a Lexer.
-    def lexer
-      language ? language.lexer : Pygments::Lexer.find_by_name('Text only')
     end
 
     # Internal: Disambiguates between multiple language extensions.
@@ -485,9 +314,6 @@ module Linguist
     #
     # Returns a Language.
     def first_line_language
-      # Fail fast if blob isn't viewable?
-      return unless viewable?
-
       if lines.first.to_s =~ /^<\?php/
         Language['PHP']
       end
@@ -513,9 +339,6 @@ module Linguist
     #
     # Returns a script name String or nil
     def shebang_script
-      # Fail fast if blob isn't viewable?
-      return unless viewable?
-
       if lines.any? && (match = lines[0].match(/(.+)\n?/)) && (bang = match[0]) =~ /^#!/
         bang.sub!(/^#! /, '#!')
         tokens = bang.split(' ')
@@ -553,33 +376,6 @@ module Linguist
     def shebang_language
       if script = shebang_script
         Language[script]
-      end
-    end
-
-    # Public: Highlight syntax of blob
-    #
-    # options - A Hash of options (defaults to {})
-    #
-    # Returns html String
-    def colorize(options = {})
-      return if !text? || large?
-      options[:options] ||= {}
-      options[:options][:encoding] ||= encoding
-      lexer.highlight(data, options)
-    end
-
-    # Public: Highlight syntax of blob without the outer highlight div
-    # wrapper.
-    #
-    # options - A Hash of options (defaults to {})
-    #
-    # Returns html String
-    def colorize_without_wrapper(options = {})
-      return if !text? || large?
-      if text = colorize(options)
-        text[%r{<div class="highlight"><pre>(.*?)</pre>\s*</div>}m, 1]
-      else
-        ''
       end
     end
 

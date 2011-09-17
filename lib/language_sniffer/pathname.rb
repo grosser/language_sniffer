@@ -1,9 +1,7 @@
-require 'linguist/language'
-require 'linguist/mime'
-require 'pygments'
+require 'language_sniffer/language'
 
-module Linguist
-  # Similar to ::Pathname, Linguist::Pathname wraps a path string and
+module LanguageSniffer
+  # Similar to ::Pathname, LanguageSniffer::Pathname wraps a path string and
   # provides helpful query methods. Its useful when you only have a
   # filename but not a blob and need to figure out the language of the file.
   class Pathname
@@ -56,25 +54,6 @@ module Linguist
     # Returns a Language or nil if none was found.
     def language
       @language ||= Language.find_by_filename(@path)
-    end
-
-    # Internal: Get the lexer of the path
-    #
-    # Returns a Lexer.
-    def lexer
-      language ? language.lexer : Pygments::Lexer.find_by_name('Text only')
-    end
-
-    # Public: Get the mime type
-    #
-    # Examples
-    #
-    #   Pathname.new('index.html').mime_type
-    #   # => 'text/html'
-    #
-    # Returns a mime type String.
-    def mime_type
-      @mime_type ||= Mime.mime_for(extname)
     end
 
     # Public: Return self as String

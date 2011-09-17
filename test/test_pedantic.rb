@@ -1,7 +1,7 @@
 require 'test/unit'
 
 class TestPedantic < Test::Unit::TestCase
-  Lib = File.expand_path("../../lib/linguist", __FILE__)
+  Lib = File.expand_path("../../lib/language_sniffer", __FILE__)
 
   def file(name)
     File.read(File.join(Lib, name))

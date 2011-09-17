@@ -1,13 +1,9 @@
-require 'linguist/file_blob'
+require 'language_sniffer/file_blob'
 
 require 'test/unit'
-require 'mime/types'
-require 'pygments'
 
 class TestBlob < Test::Unit::TestCase
-  include Linguist
-
-  Lexer = Pygments::Lexer
+  include LanguageSniffer
 
   def fixtures_path
     File.expand_path("../fixtures", __FILE__)
@@ -23,37 +19,6 @@ class TestBlob < Test::Unit::TestCase
 
   def test_pathname
     assert_equal Pathname.new("foo.rb"), blob("foo.rb").pathname
-  end
-
-  def test_mime_type
-    assert_equal "application/octet-stream", blob("dog.o").mime_type
-    assert_equal "application/postscript", blob("octocat.ai").mime_type
-    assert_equal "application/ruby", blob("grit.rb").mime_type
-    assert_equal "application/sh", blob("script.sh").mime_type
-    assert_equal "application/xml", blob("bar.xml").mime_type
-    assert_equal "text/plain", blob("README").mime_type
-  end
-
-  def test_content_type
-    assert_equal "application/octet-stream", blob("dog.o").content_type
-    assert_equal "application/pdf", blob("foo.pdf").content_type
-    assert_equal "image/png", blob("foo.png").content_type
-    assert_equal "text/plain; charset=iso-8859-2", blob("README").content_type
-    assert_equal "text/plain; charset=iso-8859-1", blob("script.pl").content_type
-    assert_equal "text/plain; charset=iso-8859-1", blob("script.py").content_type
-    assert_equal "text/plain; charset=iso-8859-1", blob("script.rb").content_type
-    assert_equal "text/plain; charset=iso-8859-1", blob("script.sh").content_type
-  end
-
-  def test_disposition
-    assert_equal "attachment; filename=foo+bar.jar", blob("foo bar.jar").disposition
-    assert_equal "attachment; filename=foo.bin", blob("foo.bin").disposition
-    assert_equal "attachment; filename=linguist.gem", blob("pkg/linguist.gem").disposition
-    assert_equal "attachment; filename=octocat.ai", blob("octocat.ai").disposition
-    assert_equal "inline", blob("README").disposition
-    assert_equal "inline", blob("foo.txt").disposition
-    assert_equal "inline", blob("grit.rb").disposition
-    assert_equal "inline", blob("octocat.png").disposition
   end
 
   def test_data
@@ -74,63 +39,6 @@ class TestBlob < Test::Unit::TestCase
 
   def test_sloc
     assert_equal 2, blob("foo.rb").sloc
-  end
-
-  def test_encoding
-    assert_equal "ISO-8859-2", blob("README").encoding
-    assert_equal "ISO-8859-1", blob("dump.sql").encoding
-    assert_equal "UTF-8", blob("foo.txt").encoding
-    assert_nil blob("dog.o").encoding
-  end
-
-  def test_binary
-    # Large blobs aren't loaded
-    large_blob = blob("git.exe")
-    large_blob.instance_eval do
-      def data; end
-    end
-    assert large_blob.binary?
-
-    assert blob("git.deb").binary?
-    assert blob("git.exe").binary?
-    assert blob("hello.pbc").binary?
-    assert blob("linguist.gem").binary?
-    assert blob("octocat.ai").binary?
-    assert blob("octocat.png").binary?
-    assert blob("zip").binary?
-    assert !blob("README").binary?
-    assert !blob("file.txt").binary?
-    assert !blob("foo.rb").binary?
-    assert !blob("script.pl").binary?
-  end
-
-  def test_text
-    assert blob("README").text?
-    assert blob("dump.sql").text?
-    assert blob("file.json").text?
-    assert blob("file.txt").text?
-    assert blob("md").text?
-    assert blob("script.sh").text?
-    assert blob("tender.md").text?
-    assert blob("txt").text?
-  end
-
-  def test_image
-    assert blob("octocat.gif").image?
-    assert blob("octocat.jpeg").image?
-    assert blob("octocat.jpg").image?
-    assert blob("octocat.png").image?
-    assert !blob("octocat.ai").image?
-    assert !blob("octocat.psd").image?
-  end
-
-  def test_viewable
-    assert blob("README").viewable?
-    assert blob("foo.rb").viewable?
-    assert blob("script.pl").viewable?
-    assert !blob("linguist.gem").viewable?
-    assert !blob("octocat.ai").viewable?
-    assert !blob("octocat.png").viewable?
   end
 
   def test_generated
@@ -174,76 +82,6 @@ class TestBlob < Test::Unit::TestCase
 
     assert blob("coffee/intro.js").generated?
     assert blob("coffee/classes.js").generated?
-  end
-
-  def test_vendored
-    assert !blob("README").vendored?
-
-    # Node depedencies
-    assert blob("node_modules/coffee-script/lib/coffee-script.js").vendored?
-
-    # Rails vendor/
-    assert blob("vendor/plugins/will_paginate/lib/will_paginate.rb").vendored?
-
-    # C deps
-    assert blob("deps/http_parser/http_parser.c").vendored?
-    assert blob("deps/v8/src/v8.h").vendored?
-
-    # Prototype
-    assert !blob("public/javascripts/application.js").vendored?
-    assert blob("public/javascripts/prototype.js").vendored?
-    assert blob("public/javascripts/effects.js").vendored?
-    assert blob("public/javascripts/controls.js").vendored?
-    assert blob("public/javascripts/dragdrop.js").vendored?
-
-    # jQuery
-    assert blob("jquery.js").vendored?
-    assert blob("public/javascripts/jquery.js").vendored?
-    assert blob("public/javascripts/jquery.min.js").vendored?
-    assert blob("public/javascripts/jquery-1.5.2.js").vendored?
-    assert blob("public/javascripts/jquery-1.6.1.js").vendored?
-    assert blob("public/javascripts/jquery-1.6.1.min.js").vendored?
-    assert !blob("public/javascripts/jquery.github.menu.js").vendored?
-
-    # MooTools
-    assert blob("public/javascripts/mootools-core-1.3.2-full-compat.js").vendored?
-    assert blob("public/javascripts/mootools-core-1.3.2-full-compat-yc.js").vendored?
-
-    # Dojo
-    assert blob("public/javascripts/dojo.js").vendored?
-
-    # MochiKit
-    assert blob("public/javascripts/MochiKit.js").vendored?
-
-    # YUI
-    assert blob("public/javascripts/yahoo-dom-event.js").vendored?
-    assert blob("public/javascripts/yahoo-min.js").vendored?
-    assert blob("public/javascripts/yuiloader-dom-event.js").vendored?
-
-    # LESS
-    assert blob("public/javascripts/less-1.1.0.js").vendored?
-    assert blob("public/javascripts/less-1.1.0.min.js").vendored?
-
-    # WYS editors
-    assert blob("public/javascripts/ckeditor.js").vendored?
-    assert blob("public/javascripts/tiny_mce.js").vendored?
-    assert blob("public/javascripts/tiny_mce_popup.js").vendored?
-    assert blob("public/javascripts/tiny_mce_src.js").vendored?
-
-    # Fabric
-    assert blob("fabfile.py").vendored?
-
-    # WAF
-    assert blob("waf").vendored?
-  end
-
-  def test_indexable
-    assert blob("file.txt").indexable?
-    assert blob("foo.rb").indexable?
-    assert !blob("defun.kt").indexable?
-    assert !blob("dump.sql").indexable?
-    assert !blob("github.po").indexable?
-    assert !blob("linguist.gem").indexable?
   end
 
   def test_language
@@ -370,15 +208,6 @@ class TestBlob < Test::Unit::TestCase
     assert_equal Language['CSS'], blob("screen.scss").language.group
   end
 
-  def test_lexer
-    assert_equal Lexer['Diff'], blob("dude-thing-okay--001.patch").lexer
-    assert_equal Lexer['JavaScript'], blob("dude.js").lexer
-    assert_equal Lexer['Ruby'], blob("Capfile").lexer
-    assert_equal Lexer['Ruby'], blob("grit.rb").lexer
-    assert_equal Lexer['Scheme'], blob("dude.el").lexer
-    assert_equal Lexer['Text only'], blob("README").lexer
-  end
-
   def test_shebang_script
     assert_equal 'sh', blob("script.sh").shebang_script
     assert_equal 'bash', blob("script.bash").shebang_script
@@ -414,21 +243,5 @@ class TestBlob < Test::Unit::TestCase
     assert_equal Language['Racket'], blob("script.rkt").shebang_language
     assert_equal nil, blob("script.foo").shebang_language
     assert_equal nil, blob("foo.rb").shebang_language
-  end
-
-  def test_colorize
-    assert_equal <<-HTML, blob("foo.rb").colorize
-<div class="highlight"><pre><span class="k">module</span> <span class="nn">Foo</span>
-<span class="k">end</span>
-</pre>
-</div>
-    HTML
-  end
-
-  def test_colorize_without_wrapper
-    assert_equal <<-HTML, blob("foo.rb").colorize_without_wrapper
-<span class="k">module</span> <span class="nn">Foo</span>
-<span class="k">end</span>
-    HTML
   end
 end
