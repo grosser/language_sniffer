@@ -1,6 +1,9 @@
+$LOAD_PATH.push File.expand_path("../lib", __FILE__)
+require "language_sniffer/version"
+
 Gem::Specification.new do |s|
   s.name    = 'language_sniffer'
-  s.version = '1.0.0'
+  s.version = LanguageSniffer::Version::STRING
   s.summary = "Language detection"
   s.email = %q{grosser.michael@gmail.com}
   s.homepage = %q{http://github.com/grosser/language_sniffer}
