@@ -15,6 +15,10 @@ Most languages are detected by their file extension. This is the fastest and mos
 
     LanguageSniffer.detect("bin/language_sniffer").language.name #=> "Ruby"
 
+You can also just pass :content and :path, no need to have a local file.
+
+    LanguageSniffer.detect("xxx/language_sniffer", :content => File.read('bin/language_sniffer)).language.name #=> "Ruby"
+
 See [lib/language_sniffer/language.rb](https://github.com/grosser/language_sniffer/blob/master/lib/language_sniffer/language.rb) and [lib/language_sniffer/languages.yml](https://github.com/github/language_sniffer/blob/master/lib/language_sniffer/languages.yml).
 
 ## Installation
