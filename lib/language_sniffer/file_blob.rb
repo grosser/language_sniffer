@@ -13,9 +13,10 @@ module LanguageSniffer
     # base_path - Optional base to relativize the path
     #
     # Returns a FileBlob.
-    def initialize(path, base_path = nil)
+    def initialize(path, base_path = nil, data=nil)
       @path = path
       @name = base_path ? path.sub("#{base_path}/", '') : path
+      @data = data
     end
 
     # Public: Filename
@@ -36,14 +37,7 @@ module LanguageSniffer
     #
     # Returns a String.
     def data
-      File.read(@path)
-    end
-
-    # Public: Get byte size
-    #
-    # Returns an Integer.
-    def size
-      File.size(@path)
+      @data ||= File.read(@path)
     end
   end
 end

@@ -29,10 +29,6 @@ class TestBlob < Test::Unit::TestCase
     assert_equal ["module Foo", "end", ""], blob("foo.rb").lines
   end
 
-  def test_size
-    assert_equal 15, blob("foo.rb").size
-  end
-
   def test_loc
     assert_equal 3, blob("foo.rb").loc
   end
