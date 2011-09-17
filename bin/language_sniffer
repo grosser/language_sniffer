@@ -2,10 +2,10 @@
 
 require 'language_sniffer/file_blob'
 
-path = ARGV[0] || Dir.pwd
+path = ARGV[0] || ''
 
 if File.directory?(path)
-  raise "Cannot parse a whole directory"
+  abort "Cannot parse a whole directory"
 elsif File.file?(path)
   blob = LanguageSniffer::FileBlob.new(path, Dir.pwd)
 
