@@ -1,12 +1,18 @@
-require 'linguist/language'
+require 'language_sniffer/language'
 
 require 'test/unit'
-require 'pygments'
 
 class TestLanguage < Test::Unit::TestCase
-  include Linguist
+  class Lexer
+    # just turn everything called in [] as string
+    # to make tests work even if there are no more Lexer objects
+    def self.[](x)
+      x
+    end
+  end
 
-  Lexer = Pygments::Lexer
+
+  include LanguageSniffer
 
   def test_ambiguous_extensions
     assert Language.ambiguous?('.h')
@@ -165,14 +171,6 @@ class TestLanguage < Test::Unit::TestCase
     assert_equal 'rst',           Language['reStructuredText'].search_term
   end
 
-  def test_popular
-    assert Language['Ruby'].popular?
-    assert Language['Perl'].popular?
-    assert Language['Python'].popular?
-    assert Language['Assembly'].unpopular?
-    assert Language['Brainfuck'].unpopular?
-  end
-
   def test_programming
     assert_equal :programming, Language['JavaScript'].type
     assert_equal :programming, Language['Perl'].type
@@ -188,12 +186,6 @@ class TestLanguage < Test::Unit::TestCase
   def test_other
     assert_nil Language['Brainfuck'].type
     assert_nil Language['Makefile'].type
-  end
-
-  def test_searchable
-    assert Language['Ruby'].searchable?
-    assert !Language['Gettext Catalog'].searchable?
-    assert !Language['SQL'].searchable?
   end
 
   def test_find_by_name
@@ -296,22 +288,5 @@ class TestLanguage < Test::Unit::TestCase
     assert Language['Ruby'].eql?(Language['Ruby'])
     assert !Language['Ruby'].eql?(Language['Python'])
     assert !Language['Ruby'].eql?(Language.new(:name => 'Ruby'))
-  end
-
-
-  def test_colorize
-    assert_equal <<-HTML, Language['Text'].colorize("Hello")
-<div class="highlight"><pre>Hello
-</pre>
-</div>
-    HTML
-
-    assert_equal <<-HTML, Language['Ruby'].colorize("def foo\n  'foo'\nend\n")
-<div class="highlight"><pre><span class="k">def</span> <span class="nf">foo</span>
-  <span class="s1">&#39;foo&#39;</span>
-<span class="k">end</span>
-</pre>
-</div>
-    HTML
   end
 end
