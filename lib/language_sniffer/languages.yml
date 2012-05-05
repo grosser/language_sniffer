@@ -1,8 +1,15 @@
 # Defines all Languages known
 #
+# All languages have an associated lexer for syntax highlighting. It
+# defaults to name.downcase, which covers most cases. Make sure the
+# lexer exists in lexers.yml. This is a list of available in our
+# version of pygments.
+#
 # type              - Either data, programming, markup, or nil
+# lexer             - An explicit lexer String (defaults to name.downcase)
 # aliases           - An Array of additional aliases (implicitly
 #                     includes name.downcase)
+# ace_mode          - A String name of Ace Mode (if available)
 # extension         - An Array of associated extensions
 # primary_extension - A String for the main extension associated with
 #                     the langauge. (defaults to extensions.first)
@@ -10,6 +17,7 @@
 # searchable        - Boolean flag to enable searching (defaults to true)
 # search_term       - Deprecated: Some languages maybe indexed under a
 #                     different alias. Avoid defining new exceptions.
+# color             - CSS hex color to represent the language.
 #
 # Any additions or modifications (even trivial) should have corresponding
 # test change in `test/test_blob.rb`.
@@ -48,7 +56,15 @@ Ada:
   - .adb
   - .ads
 
+Apex:
+  type: programming
+  lexer: Text only
+  extensions:
+  - .cls
+
 AppleScript:
+  aliases:
+  - osascript
   primary_extension: .scpt
   extensions:
   - .applescript
@@ -60,6 +76,12 @@ Arc:
   extensions:
   - .arc
 
+Arduino:
+  type: programming
+  lexer: C++
+  extensions:
+  - .ino
+
 Assembly:
   type: programming
   lexer: NASM
@@ -68,6 +90,11 @@ Assembly:
   - nasm
   extensions:
   - .asm
+
+Augeas:
+  type: programming
+  extensions:
+  - .aug
 
 AutoHotkey:
   type: programming
@@ -106,6 +133,11 @@ Brainfuck:
   - .b
   - .bf
 
+Bro:
+  type: programming
+  extensions:
+  - .bro
+
 C:
   type: programming
   overrides:
@@ -114,9 +146,11 @@ C:
   extensions:
   - .c
   - .h
+  - .w
 
 C#:
   type: programming
+  ace_mode: csharp
   search_term: csharp
   aliases:
   - csharp
@@ -125,6 +159,7 @@ C#:
 
 C++:
   type: programming
+  ace_mode: c_cpp
   search_term: cpp
   aliases:
   - cpp
@@ -148,6 +183,15 @@ C-ObjDump:
   extensions:
   - .c-objdump
 
+C2hs Haskell:
+  type: programming
+  lexer: Haskell
+  group: Haskell
+  aliases:
+  - c2hs
+  extensions:
+  - .chs
+
 CMake:
   extensions:
   - .cmake
@@ -156,6 +200,7 @@ CMake:
   - CMakeLists.txt
 
 CSS:
+  ace_mode: css
   extensions:
   - .css
 
@@ -166,6 +211,7 @@ ChucK:
 
 Clojure:
   type: programming
+  ace_mode: clojure
   primary_extension: .clj
   extensions:
   - .clj
@@ -173,6 +219,7 @@ Clojure:
 
 CoffeeScript:
   type: programming
+  ace_mode: coffee
   aliases:
   - coffee
   extensions:
@@ -183,6 +230,7 @@ CoffeeScript:
 ColdFusion:
   type: programming
   lexer: Coldfusion HTML
+  ace_mode: coldfusion
   search_term: cfm
   aliases:
   - cfm
@@ -198,7 +246,13 @@ Common Lisp:
   primary_extension: .lisp
   extensions:
   - .lisp
+  - .lsp
   - .ny
+
+Coq:
+  type: programming
+  extensions:
+  - .v
 
 Cpp-ObjDump:
   type: data
@@ -242,12 +296,28 @@ Darcs Patch:
   - .darcspatch
   - .dpatch
 
+Dart:
+  type: programming
+  extensions:
+  - .dart
+
 Delphi:
   type: programming
   primary_extension: .pas
   extensions:
   - .dpr
+  - .lpr
   - .pas
+
+DCPU-16 ASM:
+  type: programming
+  lexer: dasm16
+  primary_extension: .dasm16
+  extensions:
+  - .dasm
+  - .dasm16
+  aliases:
+  - dasm16
 
 Diff:
   extensions:
@@ -259,17 +329,32 @@ Dylan:
   extensions:
   - .dylan
 
+Ecere Projects:
+  type: data
+  group: JavaScript
+  lexer: JSON
+  extensions:
+  - .epj
+
 Eiffel:
   type: programming
   lexer: Text only
   extensions:
   - .e
 
+Elixir:
+  type: programming
+  primary_extension: .ex
+  extensions:
+  - .ex
+  - .exs
+
 Emacs Lisp:
   type: programming
   lexer: Scheme
   aliases:
   - elisp
+  - emacs
   primary_extension: .el
   extensions:
   - .el
@@ -284,7 +369,7 @@ Erlang:
 
 F#:
   type: programming
-  lexer: OCaml
+  lexer: FSharp
   search_term: ocaml
   extensions:
   - .fs
@@ -297,9 +382,21 @@ FORTRAN:
   primary_extension: .f90
   extensions:
   - .F
+  - .F03
+  - .F08
+  - .F77
   - .F90
+  - .F95
+  - .FOR
+  - .FPP
   - .f
+  - .f03
+  - .f08
+  - .f77
   - .f90
+  - .f95
+  - .for
+  - .fpp
 
 Factor:
   type: programming
@@ -312,6 +409,11 @@ Fancy:
   extensions:
   - .fancypack
   - .fy
+
+Fantom:
+  type: programming
+  extensions:
+  - .fan
 
 GAS:
   type: programming
@@ -375,7 +477,7 @@ Groff:
 
 Groovy:
   type: programming
-  lexer: Java
+  ace_mode: groovy
   primary_extension: .groovy
   extensions:
   - .gradle
@@ -393,6 +495,7 @@ Groovy Server Pages:
 
 HTML:
   type: markup
+  ace_mode: html
   primary_extension: .html
   extensions:
   - .htm
@@ -425,6 +528,7 @@ HTML+PHP:
 HaXe:
   type: programming
   lexer: haXe
+  ace_mode: haxe
   extensions:
   - .hx
   - .hxml
@@ -473,13 +577,14 @@ Ioke:
 JSON:
   type: data
   group: JavaScript
-  lexer: JavaScript
+  ace_mode: json
   searchable: false
   extensions:
   - .json
 
 Java:
   type: programming
+  ace_mode: java
   extensions:
   - .java
   - .pde
@@ -495,13 +600,16 @@ Java Server Pages:
 
 JavaScript:
   type: programming
+  ace_mode: javascript
   aliases:
   - js
   - node
   primary_extension: .js
   extensions:
+  - .bones
   - .jake
   - .js
+  - .jsfl
   - .jsm
   - .jss
   - .jsx
@@ -510,6 +618,18 @@ JavaScript:
   - .ssjs
   filenames:
   - Jakefile
+
+Julia:
+  type: programming
+  extensions:
+  - .jl
+
+Kotlin:
+  type: programming
+  extensions:
+  - .kt
+  - .ktm
+  - .kts
 
 LLVM:
   extensions:
@@ -531,9 +651,14 @@ Literate Haskell:
   extensions:
   - .lhs
 
+Logtalk:
+  type: programming
+  extensions:
+  - .lgt
+
 Lua:
   type: programming
-  primary_extension: .lua
+  ace_mode: lua
   extensions:
   - .lua
   - .nse
@@ -541,16 +666,21 @@ Lua:
 Makefile:
   extensions:
   - .mak
+  - .mk
   filenames:
+  - makefile
   - Makefile
+  - GNUmakefile
 
 Mako:
   extensions:
+  - .mako
   - .mao
 
 Markdown:
   type: markup
   lexer: Text only
+  ace_mode: markdown
   primary_extension: .md
   extensions:
   - .markdown
@@ -600,8 +730,10 @@ Nemerle:
   - .n
 
 Nimrod:
+  type: programming
   extensions:
   - .nim
+  - .nimrod
 
 Nu:
   type: programming
@@ -623,6 +755,7 @@ NumPy:
 
 OCaml:
   type: programming
+  ace_mode: ocaml
   primary_extension: .ml
   extensions:
   - .ml
@@ -652,6 +785,11 @@ Objective-J:
   - .j
   - .sj
 
+Opa:
+  type: programming
+  extensions:
+  - .opa
+
 OpenCL:
   type: programming
   group: C
@@ -659,8 +797,20 @@ OpenCL:
   extensions:
   - .cl
 
+OpenEdge ABL:
+  type: programming
+  aliases:
+  - progress
+  - openedge
+  - abl
+  primary_extension: .p
+  extensions:
+  - .cls
+  - .p
+
 PHP:
   type: programming
+  ace_mode: php
   extensions:
   - .aw
   - .ctp
@@ -669,6 +819,8 @@ PHP:
   - .php4
   - .php5
   - .phpt
+  filenames:
+  - Phakefile
 
 Parrot:
   type: programming
@@ -695,18 +847,30 @@ Parrot Assembly:
 
 Perl:
   type: programming
+  ace_mode: perl
   overrides:
   - .pl
+  - .t
   primary_extension: .pl
   extensions:
   - .PL
   - .perl
   - .ph
   - .pl
+  - .plx
   - .pm
   - .pod
   - .psgi
   - .t
+
+PowerShell:
+  type: programming
+  ace_mode: powershell
+  aliases:
+  - posh
+  extensions:
+  - .ps1
+  - .psm1
 
 Prolog:
   type: programming
@@ -714,6 +878,13 @@ Prolog:
   - .pl
   - .pro
   - .prolog
+
+Puppet:
+  type: programming
+  extensions:
+  - .pp
+  filenames:
+  - Modulefile
 
 Pure Data:
   type: programming
@@ -723,11 +894,13 @@ Pure Data:
 
 Python:
   type: programming
+  ace_mode: python
   primary_extension: .py
   extensions:
   - .py
   - .pyw
   - .wsgi
+  - .xpy
 
 Python traceback:
   type: data
@@ -785,6 +958,7 @@ Redcode:
 
 Ruby:
   type: programming
+  ace_mode: ruby
   aliases:
   - jruby
   - macruby
@@ -797,6 +971,7 @@ Ruby:
   - .gemspec
   - .god
   - .irbrc
+  - .podspec
   - .rake
   - .rb
   - .rbuild
@@ -807,31 +982,39 @@ Ruby:
   - .watchr
   filenames:
   - Capfile
-  - Rakefile
-  - Thorfile
   - Gemfile
   - Guardfile
+  - Podfile
+  - Rakefile
+  - Thorfile
   - Vagrantfile
 
 Rust:
   type: programming
   lexer: Text only
-  primary_extension: .rs
   extensions:
-  - .rc
   - .rs
 
 SCSS:
   type: markup
   group: CSS
+  ace_mode: scss
   extensions:
   - .scss
 
 SQL:
   type: data
+  ace_mode: sql
   searchable: false
   extensions:
   - .sql
+
+Sage:
+  type: programming
+  lexer: Python
+  group: Python
+  extensions:
+  - .sage
 
 Sass:
   type: markup
@@ -841,6 +1024,7 @@ Sass:
 
 Scala:
   type: programming
+  ace_mode: scala
   primary_extension: .scala
   extensions:
   - .sbt
@@ -854,6 +1038,13 @@ Scheme:
   - .sls
   - .sps
   - .ss
+
+Scilab:
+  type: programming
+  primary_extension: .sci
+  extensions:
+  - .sce
+  - .tst
 
 Self:
   type: programming
@@ -881,6 +1072,8 @@ Shell:
   - .zlogin
   - .zsh
   - .zshrc
+  - bashrc
+  - zshrc
 
 Smalltalk:
   type: programming
@@ -893,7 +1086,6 @@ Smarty:
 
 Standard ML:
   type: programming
-  lexer: Standard ML
   aliases:
   - sml
   primary_extension: .sml
@@ -922,25 +1114,45 @@ Tcsh:
 
 TeX:
   type: markup
+  ace_mode: latex
   primary_extension: .tex
+  overrides:
+  - .cls
   extensions:
   - .aux
   - .cls
+  - .dtx
+  - .ins
+  - .ltx
   - .sty
   - .tex
   - .toc
 
+Tea:
+  type: markup
+  extensions:
+  - .tea
+
 Text:
   type: data
   lexer: Text only
+  ace_mode: text
   extensions:
   - .txt
 
 Textile:
   type: markup
   lexer: Text only
+  ace_mode: textile
   extensions:
   - .textile
+
+Turing:
+  type: programming
+  lexer: Text only
+  extensions:
+  - .t
+  - .tu
 
 Twig:
   type: markup
@@ -951,8 +1163,7 @@ Twig:
 
 VHDL:
   type: programming
-  lexer: Text only
-  primary_extension: .vhd
+  lexer: vhdl
   extensions:
   - .vhd
   - .vhdl
@@ -961,10 +1172,13 @@ Vala:
   type: programming
   extensions:
   - .vala
+  - .vapi
 
 Verilog:
   type: programming
-  lexer: verilog
+  lexer: Verilog
+  overrides:
+  - .v
   extensions:
   - .v
 
@@ -978,6 +1192,8 @@ VimL:
   filenames:
   - .gvimrc
   - .vimrc
+  - vimrc
+  - gvimrc
 
 Visual Basic:
   type: programming
@@ -992,6 +1208,7 @@ Visual Basic:
 
 XML:
   type: markup
+  ace_mode: xml
   primary_extension: .xml
   extensions:
   - .glade
@@ -1006,6 +1223,8 @@ XML:
   - .wxl
   - .wxs
   - .xaml
+  - .xlf
+  - .xliff
   - .xml
   - .xsd
   - .xsl
@@ -1035,6 +1254,14 @@ YAML:
   - .yml
   filenames:
   - .gemrc
+
+eC:
+  type: programming
+  search_term: ec
+  primary_extension: .ec
+  extensions:
+  - .ec
+  - .eh
 
 mupad:
   lexer: MuPAD

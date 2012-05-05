@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'language_sniffer/language'
 require 'language_sniffer/pathname'
 require 'yaml'
@@ -229,6 +230,24 @@ module LanguageSniffer
       end
     end
 
+    # Internal: Guess language of .cls files
+    #
+    # Returns a Language.
+    def guess_cls_language
+      if lines.grep(/^(%|\\)/).any?
+        Language['TeX']
+      elsif lines.grep(/^\s*(CLASS|METHOD|INTERFACE).*:\s*/i).any? || lines.grep(/^\s*(USING|DEFINE)/i).any?
+        Language['OpenEdge ABL']
+      elsif lines.grep(/\{$/).any? || lines.grep(/\}$/).any?
+        Language['Apex']
+      elsif lines.grep(/^(\'\*|Attribute|Option|Sub|Private|Protected|Public|Friend)/i).any?
+        Language['Visual Basic']
+      else
+        # The most common language should be the fallback
+        Language['TeX']
+      end
+    end
+
     # Internal: Guess language of header files (.h).
     #
     # Returns a Language.
@@ -298,6 +317,39 @@ module LanguageSniffer
         Language['Rebol']
       else
         Language['R']
+      end
+    end
+
+    # Internal: Guess language of .t files.
+    #
+    # Returns a Language.
+    def guess_t_language
+      score = 0
+      score += 1 if lines.grep(/^% /).any?
+      score += data.gsub(/ := /).count
+      score += data.gsub(/proc |procedure |fcn |function /).count
+      score += data.gsub(/var \w+: \w+/).count
+
+      # Tell-tale signs its gotta be Perl
+      if lines.grep(/^(my )?(sub |\$|@|%)\w+/).any?
+        score = 0
+      end
+
+      if score >= 3
+        Language['Turing']
+      else
+        Language['Perl']
+      end
+    end
+
+    # Internal: Guess language of .v files.
+    #
+    # Returns a Language
+    def guess_v_language
+      if lines.grep(/^(\/\*|\/\/|module|parameter|input|output|wire|reg|always|initial|begin|\`)/).any?
+        Language['Verilog']
+      else
+        Language['Coq']
       end
     end
 
