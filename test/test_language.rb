@@ -14,7 +14,12 @@ class TestLanguage < Test::Unit::TestCase
 
   include LanguageSniffer
 
+
+
   def test_ambiguous_extensions
+    assert Language.ambiguous?('.cls')
+    assert_equal Language['TeX'], Language.find_by_extension('cls')
+
     assert Language.ambiguous?('.h')
     assert_equal Language['C'], Language.find_by_extension('h')
 
@@ -26,6 +31,12 @@ class TestLanguage < Test::Unit::TestCase
 
     assert Language.ambiguous?('.r')
     assert_equal Language['R'], Language.find_by_extension('r')
+
+    assert Language.ambiguous?('.t')
+    assert_equal Language['Perl'], Language.find_by_extension('t')
+
+    assert Language.ambiguous?('.v')
+    assert_equal Language['Verilog'], Language.find_by_extension('v')
   end
 
   def test_lexer
@@ -37,23 +48,25 @@ class TestLanguage < Test::Unit::TestCase
     assert_equal Lexer['C'], Language['XS'].lexer
     assert_equal Lexer['C++'], Language['C++'].lexer
     assert_equal Lexer['Coldfusion HTML'], Language['ColdFusion'].lexer
+    assert_equal Lexer['Coq'], Language['Coq'].lexer
+    assert_equal Lexer['FSharp'], Language['F#'].lexer
+    assert_equal Lexer['FSharp'], Language['F#'].lexer
     assert_equal Lexer['Fortran'], Language['FORTRAN'].lexer
     assert_equal Lexer['Gherkin'], Language['Cucumber'].lexer
+    assert_equal Lexer['Groovy'], Language['Groovy'].lexer
     assert_equal Lexer['HTML'], Language['HTML'].lexer
     assert_equal Lexer['HTML+Django/Jinja'], Language['HTML+Django'].lexer
     assert_equal Lexer['HTML+PHP'], Language['HTML+PHP'].lexer
+    assert_equal Lexer['JSON'], Language['JSON'].lexer
     assert_equal Lexer['Java'], Language['ChucK'].lexer
-    assert_equal Lexer['Java'], Language['Groovy'].lexer
     assert_equal Lexer['Java'], Language['Java'].lexer
-    assert_equal Lexer['JavaScript'], Language['JSON'].lexer
     assert_equal Lexer['JavaScript'], Language['JavaScript'].lexer
     assert_equal Lexer['MOOCode'], Language['Moocode'].lexer
     assert_equal Lexer['MuPAD'], Language['mupad'].lexer
     assert_equal Lexer['NASM'], Language['Assembly'].lexer
-    assert_equal Lexer['OCaml'], Language['F#'].lexer
     assert_equal Lexer['OCaml'], Language['OCaml'].lexer
-    assert_equal Lexer['Standard ML'], Language['Standard ML'].lexer
     assert_equal Lexer['Ooc'], Language['ooc'].lexer
+    assert_equal Lexer['OpenEdge ABL'], Language['OpenEdge ABL'].lexer
     assert_equal Lexer['REBOL'], Language['Rebol'].lexer
     assert_equal Lexer['RHTML'], Language['HTML+ERB'].lexer
     assert_equal Lexer['RHTML'], Language['RHTML'].lexer
@@ -64,8 +77,10 @@ class TestLanguage < Test::Unit::TestCase
     assert_equal Lexer['Scheme'], Language['Nu'].lexer
     assert_equal Lexer['Scheme'], Language['Racket'].lexer
     assert_equal Lexer['Scheme'], Language['Scheme'].lexer
+    assert_equal Lexer['Standard ML'], Language['Standard ML'].lexer
     assert_equal Lexer['TeX'], Language['TeX'].lexer
     assert_equal Lexer['Text only'], Language['Text'].lexer
+    assert_equal Lexer['Verilog'], Language['Verilog'].lexer
     assert_equal Lexer['aspx-vb'], Language['ASP'].lexer
     assert_equal Lexer['haXe'], Language['HaXe'].lexer
     assert_equal Lexer['reStructuredText'], Language['reStructuredText'].lexer
@@ -83,11 +98,14 @@ class TestLanguage < Test::Unit::TestCase
     assert_equal Language['C'], Language.find_by_alias('c')
     assert_equal Language['C++'], Language.find_by_alias('c++')
     assert_equal Language['C++'], Language.find_by_alias('cpp')
+    assert_equal Language['CoffeeScript'], Language.find_by_alias('coffee')
     assert_equal Language['ColdFusion'], Language.find_by_alias('cfm')
     assert_equal Language['Common Lisp'], Language.find_by_alias('common-lisp')
     assert_equal Language['Common Lisp'], Language.find_by_alias('lisp')
     assert_equal Language['Darcs Patch'], Language.find_by_alias('dpatch')
+    assert_equal Language['Dart'], Language.find_by_alias('dart')
     assert_equal Language['Emacs Lisp'], Language.find_by_alias('elisp')
+    assert_equal Language['Emacs Lisp'], Language.find_by_alias('emacs')
     assert_equal Language['Emacs Lisp'], Language.find_by_alias('emacs-lisp')
     assert_equal Language['Gettext Catalog'], Language.find_by_alias('pot')
     assert_equal Language['HTML'], Language.find_by_alias('html')
@@ -100,7 +118,12 @@ class TestLanguage < Test::Unit::TestCase
     assert_equal Language['JavaScript'], Language.find_by_alias('js')
     assert_equal Language['Literate Haskell'], Language.find_by_alias('lhs')
     assert_equal Language['Literate Haskell'], Language.find_by_alias('literate-haskell')
+    assert_equal Language['OpenEdge ABL'], Language.find_by_alias('openedge')
+    assert_equal Language['OpenEdge ABL'], Language.find_by_alias('progress')
+    assert_equal Language['OpenEdge ABL'], Language.find_by_alias('abl')
     assert_equal Language['Parrot Internal Representation'], Language.find_by_alias('pir')
+    assert_equal Language['PowerShell'], Language.find_by_alias('posh')
+    assert_equal Language['Puppet'], Language.find_by_alias('puppet')
     assert_equal Language['Pure Data'], Language.find_by_alias('pure-data')
     assert_equal Language['Raw token data'], Language.find_by_alias('raw')
     assert_equal Language['Ruby'], Language.find_by_alias('rb')
@@ -149,6 +172,7 @@ class TestLanguage < Test::Unit::TestCase
     assert_equal 'common-lisp', Language['Common Lisp'].search_term
     assert_equal 'html+erb',    Language['HTML+ERB'].search_term
     assert_equal 'max/msp',     Language['Max/MSP'].search_term
+    assert_equal 'puppet',      Language['Puppet'].search_term
     assert_equal 'pure-data',   Language['Pure Data'].search_term
 
     assert_equal 'aspx-vb',       Language['ASP'].search_term
@@ -174,6 +198,7 @@ class TestLanguage < Test::Unit::TestCase
   def test_programming
     assert_equal :programming, Language['JavaScript'].type
     assert_equal :programming, Language['Perl'].type
+    assert_equal :programming, Language['PowerShell'].type
     assert_equal :programming, Language['Python'].type
     assert_equal :programming, Language['Ruby'].type
   end
@@ -212,6 +237,7 @@ class TestLanguage < Test::Unit::TestCase
   def test_find_by_extension
     assert_equal Language['Ruby'], Language.find_by_extension('.rb')
     assert_equal Language['Ruby'], Language.find_by_extension('rb')
+    assert_equal Language['Dart'], Language.find_by_extension('dart')
     assert_equal Language['Groff'], Language.find_by_extension('man')
     assert_equal Language['Groff'], Language.find_by_extension('1')
     assert_equal Language['Groff'], Language.find_by_extension('2')
@@ -220,7 +246,9 @@ class TestLanguage < Test::Unit::TestCase
     assert_equal Language['PHP'], Language.find_by_extension('php3')
     assert_equal Language['PHP'], Language.find_by_extension('php4')
     assert_equal Language['PHP'], Language.find_by_extension('php5')
-    assert_nil Language.find_by_extension('.kt')
+    assert_equal Language['PowerShell'], Language.find_by_extension('psm1')
+    assert_equal Language['PowerShell'], Language.find_by_extension('ps1')
+    assert_nil Language.find_by_extension('.nkt')
   end
 
   def test_find_all_by_extension
@@ -239,7 +267,7 @@ class TestLanguage < Test::Unit::TestCase
     assert_equal Language['Ruby'], Language.find_by_filename('Rakefile')
     assert_nil Language.find_by_filename('rb')
     assert_nil Language.find_by_filename('.rb')
-    assert_nil Language.find_by_filename('.kt')
+    assert_nil Language.find_by_filename('.nkt')
   end
 
   def test_find
