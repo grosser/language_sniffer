@@ -4,6 +4,3 @@ rvm:
   - jruby
   - rbx
   - ree
-
-notifications:
-  disabled: true
