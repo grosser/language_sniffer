@@ -31,7 +31,11 @@ module LanguageSniffer
     #
     # Returns an Array of lines
     def lines
-      @lines ||= (data ? data.split("\n", -1) : [])
+      @lines ||= begin
+        (data ? data.split("\n", -1) : [])
+      rescue ArgumentError # invalid byte sequence in UTF-8
+        []
+      end
     end
 
     # Public: Get number of lines of code
