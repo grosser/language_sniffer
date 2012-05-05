@@ -4,7 +4,7 @@ require 'test/unit'
 
 class TestPathname < Test::Unit::TestCase
   include LanguageSniffer
-
+  
   def test_to_s
     assert_equal "file.rb", Pathname.new("file.rb").to_s
   end
@@ -38,6 +38,6 @@ class TestPathname < Test::Unit::TestCase
     assert_equal Language['Python'], Pathname.new("itty.py").language
     assert_equal Language['Nu'], Pathname.new("itty.nu").language
 
-    assert_nil Pathname.new("defun.kt").language
+    assert_nil Pathname.new("defu.nkt").language
   end
 end
